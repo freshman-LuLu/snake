@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <windows.h>
 #include <conio.h>
+#include <time.h>
+#include <stdlib.h>
 
 #define WIDTH 40
 #define HEIGHT 20
@@ -10,6 +12,7 @@ int len = 3;
 int foodX, foodY;
 int dir; // 方向 1上 2右 3下 4左
 int gameOver = 0;
+
 
 // 设置光标位置
 void Gotoxy(int x, int y)
@@ -39,8 +42,8 @@ void InitGame()
     snakeY[2] = HEIGHT / 2;
 
     // 随机食物
-    foodX = rand() % (WIDTH - 2) + 1;
-    foodY = rand() % (HEIGHT - 2) + 1;
+    foodX = rand() % (WIDTH - 4) + 3;
+    foodY = rand() % (HEIGHT - 4) + 2;
 }
 
 void Draw()
@@ -136,24 +139,60 @@ void Logic()
     if (snakeX[0] == foodX && snakeY[0] == foodY)
     {
         len++;
-        foodX = rand() % (WIDTH - 2) + 1;  // 随机生成新的食物位置 
-        foodY = rand() % (HEIGHT - 2) + 1;
+        foodX = rand() % (WIDTH - 4) + 3;  // 随机生成新的食物位置 
+        foodY = rand() % (HEIGHT - 4) + 2;
     }
 }
 
 int main()
 {
-    HideCursor();
-    InitGame();
-    while (!gameOver)
+    srand((unsigned int)time(NULL));
+    printf("===========================================================\n");
+    printf("                 欢迎来到贪吃蛇小游戏\n");
+    printf("===========================================================\n");
+    printf("  本游戏只可以通过英文输入状态下小写的wsad控制，X退出游戏\n");
+    printf ("请仔细阅读游戏规则，按下Y键以开始游戏，按下其他键退出游戏...\n");
+    
+    while (1)
     {
-        Draw();
-        Input();
-        Logic();
-        Sleep(80); //控制速度
+        int que = _getch();
+        if (que=='y'||que=='Y')
+            {
+            system("cls");
+            break;
+        }
+        else
+        {
+            return 0;
+        }
+
     }
-    Gotoxy(0, HEIGHT + 3);
-    printf("游戏结束！最终长度：%d\n", len);
-    system("pause");
+    while (1)
+    {
+        HideCursor();
+        InitGame();
+        while (!gameOver)
+        {
+            Draw();
+            Input();
+            Logic();
+            Sleep(100); //控制速度
+        }
+        Gotoxy(0, HEIGHT + 3);
+        printf("游戏结束！最终长度：%d\n", len);
+        printf ("按R重新开始，按其他键退出游戏...\n");
+
+        int an=_getch();
+        if (an == 'r' || an == 'R')
+        {
+            system("cls");
+        }
+        else
+        {
+            break;
+        }
+   
+    }
     return 0;
+
 }
