@@ -48,18 +48,18 @@ int LoadScores()
 
     int slen, swin, count = 0;
     printf("-------------------历史成绩（最多%d条）--------------------\n", MAX_RECORDS);
-    
+
     printf("%-10s%-10s%-10s\n", "序号", "长度", "结果");
-    
+
     printf("------------------------------------------------------------\n");
     while (count < MAX_RECORDS && fscanf_s(fp, "%d %d", &slen, &swin) == 2)  //
     {
-        printf("%-10d%-10d%-10s\n", count + 1, slen, swin ? "胜利" : "失败"); 
+        printf("%-10d%-10d%-10s\n", count + 1, slen, swin ? "胜利" : "失败");
         count++;
-        printf("------------------------------------------------------------\n");  
+        printf("------------------------------------------------------------\n");
     }
-   
-   
+
+
     printf("------------------------------------------------------------\n");
     fclose(fp);
     return count;
@@ -174,7 +174,7 @@ void Draw()
 
     //下边框
     for (int i = 0; i < WIDTH + 2; i++)
-    printf("#");
+        printf("#");
     printf("\n");
     printf("  长度：%d\n", len);
 }
@@ -227,7 +227,7 @@ void Logic()
     if (snakeX[0] == foodX && snakeY[0] == foodY)
     {
         len++;
-        if(len>=15)
+        if (len >= 15)
         {
             gameOver = 1;
             win = 1;
@@ -241,26 +241,26 @@ int main()
 {
     atexit(CleanupScoreFile); //注册退出函数，程序结束时删除成绩文件)
     remove(SCORE_FILE); //删除旧的成绩文件
-    
+
     srand((unsigned int)time(NULL));
     printf("===========================================================\n");
     printf("                 欢迎来到贪吃蛇小游戏\n");
     printf("===========================================================\n");
     printf("  本游戏只可以通过英文输入状态下小写的wsad控制，X退出游戏\n");
-    printf ("                  贪吃蛇长度达到15获胜\n");
+    printf("                  贪吃蛇长度达到15获胜\n");
     printf("                贪吃蛇会随着获取食物而加速\n");
     printf("===========================================================\n");
-   
+
     LoadScores();
-    
+
     printf("===========================================================\n");
-    printf ("请仔细阅读游戏规则，按下Y键以开始游戏，按下其他键退出游戏...\n");
-    
+    printf("请仔细阅读游戏规则，按下Y键以开始游戏，按下其他键退出游戏...\n");
+
     while (1)
     {
         int que = _getch();
-        if (que=='y'||que=='Y')
-            {
+        if (que == 'y' || que == 'Y')
+        {
             system("cls");
             break;
         }
@@ -279,25 +279,25 @@ int main()
             Draw();
             Input();
             Logic();
-            Sleep(100-len*3); //控制速度
+            Sleep(100 - len * 3); //控制速度
         }
-        if (win==0)
+        if (win == 0)
         {
             Gotoxy(0, HEIGHT + 3);
             printf("游戏结束！最终长度：%d\n", len);
-            SaveScore(len,0); //保存失败成绩
-            printf("按R重新开始，按其他键退出游戏...\n");  
+            SaveScore(len, 0); //保存失败成绩
+            printf("按R重新开始，按其他键退出游戏...\n");
         }
-       
+
         else
         {
             Gotoxy(0, HEIGHT + 3);
             printf("恭喜你，你赢了！最终长度：%d\n", len);
             SaveScore(len, 1); // 保存胜利成绩
-            printf("按R重新开始，按其他键退出游戏...\n");           
+            printf("按R重新开始，按其他键退出游戏...\n");
         }
-       
-       
+
+
         int an = _getch();
         if (an == 'r' || an == 'R')
         {
