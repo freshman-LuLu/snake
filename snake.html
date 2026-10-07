@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>贪吃蛇小游戏</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #000;
+            color: #ccc;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        #app {
+            white-space: pre;
+            line-height: 1.2;
+            letter-spacing: 0;
+            user-select: none;
+        }
+
+        .board {
+            color: #e0e0e0;
+        }
+
+        .snake-head {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .snake-body {
+            color: #8BC34A;
+        }
+
+        .food {
+            color: #F44336;
+            font-weight: bold;
+        }
+
+        .border {
+            color: #888;
+        }
+
+        .title {
+            color: #FFD700;
+        }
+
+        .header {
+            color: #4FC3F7;
+        }
+
+        .win {
+            color: #4CAF50;
+        }
+
+        .lose {
+            color: #F44336;
+        }
+
+        .info {
+            color: #FFD700;
+        }
+
+        .tip {
+            color: #9E9E9E;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        const WIDTH = 40;
+        const HEIGHT = 20;
+        const SCORE_FILE = "snake_scores.txt";
+        const MAX_RECORDS = 10;
+        const WIN_LEN = 15;
+
+        let snakeX = new Array(100).fill(0);
+        let snakeY = new Array(100).fill(0);
+        let len = 3;
+        let foodX = 0, foodY = 0;
+        let dir = 2;
+        let gameOver = 0;
+        let win = 0;
+
+        let screen = 'welcome';
+        let endMessage = '';
+
+        let gameTimer = null;
+
+        const app = document.getElementById('app');
+
+        function esc(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function loadScoreRecords() {
+        try {
+        const raw = sessionStorage.getItem(SCORE_FILE);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr.slice(0, MAX_RECORDS);
+        } catch (e) {
+        return [];
+        }
+        }
+
+        function saveScoreRecords(records) {
+        const trimmed = records.slice(-MAX_RECORDS);
+        try {
+        sessionStorage.setItem(SCORE_FILE, JSON.stringify(trimmed));
+        } catch (e) {
+        }
+        }
+
+        function cleanupScoreFile() {
+        try { sessionStorage.removeItem(SCORE_FILE); } catch (e) {}
+        }
+
+        window.addEventListener('beforeunload', cleanupScoreFile);
+
+        function LoadScores() {
+        const records = loadScoreRecords();
+        let html = '';
+        if (records.length === 0) {
+        html += `<span class="tip">                    暂无历史成绩记录</span>\n`;
+        return html;
+        }
+        html += `<span class="title">-------------------历史成绩（最多${MAX_RECORDS}条）--------------------</span>\n`;
+        html += `<span class="header">${padEndDisplay("序号", 10)}${padEndDisplay("长度", 10)}${padEndDisplay("结果", 10)}</span>\n`;
+        html += `<span class="tip">------------------------------------------------------------</span>\n`;
+        records.forEach((r, i) => {
+        const result = r.win ? '胜利' : '失败';
+        const cls = r.win ? 'win' : 'lose';
+        html += `<span class="${cls}">${padEndDisplay(String(i + 1), 10)}${padEndDisplay(String(r.len), 10)}${padEndDisplay(result, 10)}</span>\n`;
+        html += `<span class="tip">------------------------------------------------------------</span>\n`;
+        });
+        html += `<span class="tip">------------------------------------------------------------</span>\n`;
+        return html;
+        }
+
+        function displayWidth(str) {
+        let w = 0;
+        for (const ch of str) {
+        w += (ch.charCodeAt(0) > 0x2E80) ? 2 : 1;
+        }
+        return w;
+        }
+
+        function padEndDisplay(str, width) {
+        const diff = width - displayWidth(str);
+        return str + ' '.repeat(Math.max(0, diff));
+        }
+
+        function SaveScore(newLen, newWin) {
+        const records = loadScoreRecords();
+        records.push({ len: newLen, win: newWin });
+        const trimmed = records.slice(-MAX_RECORDS);
+        saveScoreRecords(trimmed);
+        }
+
+        function InitGame() {
+        gameOver = 0;
+        dir = 2;
+        snakeX[0] = Math.floor(WIDTH / 2);
+        snakeY[0] = Math.floor(HEIGHT / 2);
+        snakeX[1] = Math.floor(WIDTH / 2) - 1;
+        snakeY[1] = Math.floor(HEIGHT / 2);
+        snakeX[2] = Math.floor(WIDTH / 2) - 2;
+        snakeY[2] = Math.floor(HEIGHT / 2);
+
+        foodX = Math.floor(Math.random() * (WIDTH - 4)) + 3;
+        foodY = Math.floor(Math.random() * (HEIGHT - 4)) + 2;
+        }
+
+        function Draw() {
+        let html = '<span class="board">';
+        html += '<span class="border">' + '#'.repeat(WIDTH + 2) + '</span>\n';
+
+        for (let y = 0; y < HEIGHT; y++) {
+        for (let x = 0; x < WIDTH + 2; x++) {
+        if (x === 0 || x === WIDTH + 1) {
+        html += '<span class="border">#</span>';
+        } else if (x === snakeX[0] && y === snakeY[0]) {
+        html += '<span class="snake-head">O</span>';
+        } else if (x === foodX && y === foodY) {
+        html += '<span class="food">F</span>';
+        } else {
+        let isBody = false;
+        for (let i = 1; i < len; i++) {
+        if (snakeX[i] === x && snakeY[i] === y) {
+        html += '<span class="snake-body">o</span>';
+        isBody = true;
+        break;
+        }
+        }
+        if (!isBody) html += ' ';
+        }
+        }
+        html += '\n';
+        }
+
+        html += '<span class="border">' + '#'.repeat(WIDTH + 2) + '</span>\n';
+        html += `<span class="info">  长度：${len}</span>\n`;
+        html += '</span>';
+        return html;
+        }
+
+        function handleKey(key) {
+        switch (key) {
+        case 'w': if (dir !== 3) dir = 1; break;
+        case 'd': if (dir !== 4) dir = 2; break;
+        case 's': if (dir !== 1) dir = 3; break;
+        case 'a': if (dir !== 2) dir = 4; break;
+        case 'x': gameOver = 1; break;
+        }
+        }
+
+        function Logic() {
+        for (let i = len - 1; i > 0; i--) {
+        snakeX[i] = snakeX[i - 1];
+        snakeY[i] = snakeY[i - 1];
+        }
+
+        switch (dir) {
+        case 1: snakeY[0]--; break;
+        case 2: snakeX[0]++; break;
+        case 3: snakeY[0]++; break;
+        case 4: snakeX[0]--; break;
+        }
+
+        if (snakeX[0] <= 0 || snakeX[0] >= WIDTH + 1 || snakeY[0] <= 0 || snakeY[0] >= HEIGHT)
+        gameOver = 1;
+
+        for (let i = 1; i < len; i++) {
+        if (snakeX[0] === snakeX[i] && snakeY[0] === snakeY[i])
+        gameOver = 1;
+        }
+
+        if (snakeX[0] === foodX && snakeY[0] === foodY) {
+        len++;
+        if (len >= 15) {
+        gameOver = 1;
+        win = 1;
+        }
+        foodX = Math.floor(Math.random() * (WIDTH - 4)) + 3;
+        foodY = Math.floor(Math.random() * (HEIGHT - 4)) + 2;
+        }
+        }
+
+        function renderWelcome() {
+        let html = '';
+        html += '===========================================================\n';
+        html += '                 欢迎来到贪吃蛇小游戏\n';
+        html += '===========================================================\n';
+        html += '  本游戏只可以通过英文输入状态下小写的wsad控制，X退出游戏\n';
+        html += '                  贪吃蛇长度达到15获胜\n';
+        html += '                贪吃蛇会随着获取食物而加速\n';
+        html += '===========================================================\n';
+        html += LoadScores();
+        html += '===========================================================\n';
+        html += '<span class="tip">请仔细阅读游戏规则，按下Y键以开始游戏，按下其他键退出游戏...</span>\n';
+        app.innerHTML = html;
+        }
+
+        function renderEnd() {
+        let html = Draw();
+        if (win === 0) {
+        html += `<span class="lose">游戏结束！最终长度：${len}</span>\n`;
+        } else {
+        html += `<span class="win">恭喜你，你赢了！最终长度：${len}</span>\n`;
+        }
+        html += '<span class="tip">按R重新开始，按其他键退出游戏...</span>\n';
+        app.innerHTML = html;
+        }
+
+        function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        let gameLoopRunning = false;
+
+        async function gameLoop() {
+        if (gameLoopRunning) return;
+        gameLoopRunning = true;
+        try {
+        while (!gameOver) {
+        app.innerHTML = Draw();
+        const waitMs = Math.max(0, 100 - len * 3);
+        await sleep(waitMs);
+        if (gameOver) break;
+        Logic();
+        }
+        screen = 'end';
+        if (win === 0) {
+        SaveScore(len, 0);
+        endMessage = `游戏结束！最终长度：${len}`;
+        } else {
+        SaveScore(len, 1);
+        endMessage = `恭喜你，你赢了！最终长度：${len}`;
+        }
+        renderEnd();
+        } finally {
+        gameLoopRunning = false;
+        }
+        }
+
+        function startNewGame() {
+        len = 3;
+        win = 0;
+        InitGame();
+        screen = 'playing';
+        gameLoop();
+        }
+
+        document.addEventListener('keydown', (e) => {
+        if (['w','a','s','d','x','y','r'].includes(e.key.toLowerCase())) {
+        e.preventDefault();
+        }
+        const k = e.key.toLowerCase();
+
+        if (screen === 'welcome') {
+        if (k === 'y') {
+        startNewGame();
+        } else {
+        cleanupScoreFile();
+        app.innerHTML = '<span class="tip">游戏已退出，可关闭页面。</span>\n';
+        screen = 'exit';
+        }
+        return;
+        }
+
+        if (screen === 'playing') {
+        handleKey(k);
+        return;
+        }
+
+        if (screen === 'end') {
+        if (k === 'r') {
+        startNewGame();
+        } else {
+        cleanupScoreFile();
+        app.innerHTML = '<span class="tip">游戏已退出，可关闭页面。</span>\n';
+        screen = 'exit';
+        }
+        return;
+        }
+        });
+
+        renderWelcome();
+    </script>
+</body>
+</html>
