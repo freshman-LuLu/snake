@@ -4,7 +4,7 @@
 
 -**基础c语言文件**:snake.c
 -**前端单文件**:index.html
--**程序网页地址**:http
+-**程序网页地址**:[http](https://freshman-lulu.github.io/snake/)
 
 - - -
 
