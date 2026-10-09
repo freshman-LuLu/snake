@@ -20,7 +20,7 @@
 ## 利用ai实现的c文件代码
 
 ### 在第二次迭代的c文件贪吃蛇中，通过ai实现了功能的完善
-1.**#define SCORE_FILE "snake_scores.txt"**：设置临时储存文件
+1.**define SCORE_FILE "snake_scores.txt"**：设置临时储存文件
 2.**Gotoxy(int x, int y)**：在main主入口处可以实现光标位置的重置
 3.**CONSOLE_CURSOR_INFO cursor_info = { 1, 0 };**：{dwSize, bVisible}，dwSize为光标大小，bVisible为光标是否可见
 4.**FILE fp = fopen(SCORE_FILE, "r");**：以只读方式打开文件
