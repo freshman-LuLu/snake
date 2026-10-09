@@ -1,5 +1,6 @@
 # 欢迎来到我的项目 👋
 
+## **个人简介**https://freshman-lulu.github.io/profile1/
 ## 📁 仓库内容
 
 -**基础c语言文件**:snake.c
