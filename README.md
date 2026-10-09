@@ -20,15 +20,25 @@
 ## 利用ai实现的c文件代码
 
 ### 在第二次迭代的c文件贪吃蛇中，通过ai实现了功能的完善
+
 1.**define SCORE_FILE "snake_scores.txt"**：设置临时储存文件
+
 2.**Gotoxy(int x, int y)**：在main主入口处可以实现光标位置的重置
+
 3.**CONSOLE_CURSOR_INFO cursor_info = { 1, 0 };**：{dwSize, bVisible}，dwSize为光标大小，bVisible为光标是否可见
+
 4.**FILE fp = fopen(SCORE_FILE, "r");**：以只读方式打开文件
+
 5.**printf("%-10s%-10s%-10s\n", "序号", "长度", "结果");**：左对齐，宽10的字符串输出
+
 6.**fclose(fp);return count;**：关闭文件并返回读取的记录数
+
 7.**int lens[MAX_RECORDS + 1];int wins[MAX_RECORDS + 1];**：准备临时数组，空余一个给新纪录
+
 8.**remove(SCORE_FILE);**：程序退出时删除成绩文件
+
 9.**atexit(CleanupScoreFile);**：注册退出函数，程序结束时删除成绩文件
+
 10.**remove(SCORE_FILE);**：删除旧的成绩文件
 
 
