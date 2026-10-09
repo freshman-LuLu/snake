@@ -9,18 +9,18 @@
 
 #define WIDTH 40
 #define HEIGHT 20
-#define SCORE_FILE "snake_scores.txt"  //ÉèÖÃÁÙÊ±´¢´æÎÄ¼ş
+#define SCORE_FILE "snake_scores.txt"  //è®¾ç½®ä¸´æ—¶å‚¨å­˜æ–‡ä»¶
 #define MAX_RECORDS 10
-#define WIN_LEN 20
+#define WIN_LEN 15
 
 int snakeX[100], snakeY[100];
 int len = 3;
 int foodX, foodY;
-int dir; // ·½Ïò 1ÉÏ 2ÓÒ 3ÏÂ 4×ó
+int dir; // æ–¹å‘ 1ä¸Š 2å³ 3ä¸‹ 4å·¦
 int gameOver = 0;
 int win = 0;
 
-// ÉèÖÃ¹â±êÎ»ÖÃ
+// è®¾ç½®å…‰æ ‡ä½ç½®
 void Gotoxy(int x, int y)
 {
     COORD coord;
@@ -29,32 +29,32 @@ void Gotoxy(int x, int y)
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
-// Òş²Ø¹â±ê
+// éšè—å…‰æ ‡
 void HideCursor()
 {
     CONSOLE_CURSOR_INFO cursor_info = { 1, 0 };
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info);
 }
 
-// ¶ÁÈ¡ÎÄ¼ş£¬´òÓ¡ÀúÊ·³É¼¨
+// è¯»å–æ–‡ä»¶ï¼Œæ‰“å°å†å²æˆç»©
 int LoadScores()
 {
     FILE* fp = fopen(SCORE_FILE, "r");
     if (fp == NULL)
     {
-        printf("                    ÔİÎŞÀúÊ·³É¼¨¼ÇÂ¼\n");
+        printf("                    æš‚æ— å†å²æˆç»©è®°å½•\n");
         return 0;
     }
 
     int slen, swin, count = 0;
-    printf("-------------------ÀúÊ·³É¼¨£¨×î¶à%dÌõ£©--------------------\n", MAX_RECORDS);
+    printf("-------------------å†å²æˆç»©ï¼ˆæœ€å¤š%dæ¡ï¼‰--------------------\n", MAX_RECORDS);
 
-    printf("%-10s%-10s%-10s\n", "ĞòºÅ", "³¤¶È", "½á¹û");
+    printf("%-10s%-10s%-10s\n", "åºå·", "é•¿åº¦", "ç»“æœ");
 
     printf("------------------------------------------------------------\n");
     while (count < MAX_RECORDS && fscanf_s(fp, "%d %d", &slen, &swin) == 2)  //
     {
-        printf("%-10d%-10d%-10s\n", count + 1, slen, swin ? "Ê¤Àû" : "Ê§°Ü");
+        printf("%-10d%-10d%-10s\n", count + 1, slen, swin ? "èƒœåˆ©" : "å¤±è´¥");
         count++;
         printf("------------------------------------------------------------\n");
     }
@@ -65,14 +65,14 @@ int LoadScores()
     return count;
 }
 
-// ±£´æÒ»Ìõ³É¼¨£¬×î¶à±£Áô×îĞÂµÄ MAX_RECORDS Ìõ
+// ä¿å­˜ä¸€æ¡æˆç»©ï¼Œæœ€å¤šä¿ç•™æœ€æ–°çš„ MAX_RECORDS æ¡
 void SaveScore(int newLen, int newWin)
 {
     int lens[MAX_RECORDS + 1];
     int wins[MAX_RECORDS + 1];
     int count = 0;
 
-    // ¶ÁÈ¡ÒÑÓĞ¼ÇÂ¼
+    // è¯»å–å·²æœ‰è®°å½•
     FILE* fp = fopen(SCORE_FILE, "r");
     if (fp != NULL)
     {
@@ -83,23 +83,23 @@ void SaveScore(int newLen, int newWin)
         fclose(fp);
     }
 
-    // Ìí¼ÓĞÂ¼ÇÂ¼
+    // æ·»åŠ æ–°è®°å½•
     lens[count] = newLen;
     wins[count] = newWin;
     count++;
 
-    // ³¬¹ı MAX_RECORDS ÌõÊ±£¬Ö»±£Áô×îĞÂµÄ MAX_RECORDS Ìõ
+    // è¶…è¿‡ MAX_RECORDS æ¡æ—¶ï¼Œåªä¿ç•™æœ€æ–°çš„ MAX_RECORDS æ¡
     int start = 0;
     if (count > MAX_RECORDS)
     {
         start = count - MAX_RECORDS;
     }
 
-    // Ğ´»ØÎÄ¼ş
+    // å†™å›æ–‡ä»¶
     fp = fopen(SCORE_FILE, "w");  //ss
     if (fp == NULL)
     {
-        printf("                ÎŞ·¨±£´æ³É¼¨ÎÄ¼ş£¡\n");
+        printf("                æ— æ³•ä¿å­˜æˆç»©æ–‡ä»¶ï¼\n");
         return;
     }
     for (int i = start; i < count; i++)
@@ -109,7 +109,7 @@ void SaveScore(int newLen, int newWin)
     fclose(fp);
 }
 
-// ³ÌĞòÍË³öÊ±É¾³ı³É¼¨ÎÄ¼ş
+// ç¨‹åºé€€å‡ºæ—¶åˆ é™¤æˆç»©æ–‡ä»¶
 void CleanupScoreFile()
 {
     remove(SCORE_FILE);
@@ -122,7 +122,7 @@ void InitGame()
     int win = 0;
     int len = 3;
     gameOver = 0;
-    dir = 2; // Ä¬ÈÏÏòÓÒ
+    dir = 2; // é»˜è®¤å‘å³
     snakeX[0] = WIDTH / 2;
     snakeY[0] = HEIGHT / 2;
     snakeX[1] = WIDTH / 2 - 1;
@@ -130,7 +130,7 @@ void InitGame()
     snakeX[2] = WIDTH / 2 - 2;
     snakeY[2] = HEIGHT / 2;
 
-    // Ëæ»úÊ³Îï
+    // éšæœºé£Ÿç‰©
     foodX = rand() % (WIDTH - 4) + 3;
     foodY = rand() % (HEIGHT - 4) + 2;
 }
@@ -138,7 +138,7 @@ void InitGame()
 void Draw()
 {
     Gotoxy(0, 0);
-    // ÉÏ±ß¿ò
+    // ä¸Šè¾¹æ¡†
     for (int i = 0; i < WIDTH + 2; i++)
         printf("#");
     printf("\n");
@@ -147,12 +147,12 @@ void Draw()
     {
         for (int x = 0; x < WIDTH + 2; x++)
         {
-            if (x == 0 || x == WIDTH + 1)  // ×óÓÒ±ß¿ò
+            if (x == 0 || x == WIDTH + 1)  // å·¦å³è¾¹æ¡†
                 printf("#");
             else if (x == snakeX[0] && y == snakeY[0])
-                printf("O"); //ÉßÍ·
+                printf("O"); //è›‡å¤´
             else if (x == foodX && y == foodY)
-                printf("F"); //Ê³Îï
+                printf("F"); //é£Ÿç‰©
             else
             {
                 int isBody = 0;
@@ -160,7 +160,7 @@ void Draw()
                 {
                     if (snakeX[i] == x && snakeY[i] == y)
                     {
-                        printf("o"); //ÉßÉíÌå
+                        printf("o"); //è›‡èº«ä½“
                         isBody = 1;
                         break;
                     }
@@ -172,16 +172,16 @@ void Draw()
         printf("\n");
     }
 
-    //ÏÂ±ß¿ò
+    //ä¸‹è¾¹æ¡†
     for (int i = 0; i < WIDTH + 2; i++)
         printf("#");
     printf("\n");
-    printf("  ³¤¶È£º%d\n", len);
+    printf("  é•¿åº¦ï¼š%d\n", len);
 }
 
 void Input()
 {
-    if (_kbhit()) //¼ì²â°´¼ü
+    if (_kbhit()) //æ£€æµ‹æŒ‰é”®
     {
         switch (_getch())
         {
@@ -196,14 +196,14 @@ void Input()
 
 void Logic()
 {
-    //ÉíÌå¸úËæÒÆ¶¯£¬´ÓÎ²°ÍÍùÇ°¸²¸Ç
+    //èº«ä½“è·Ÿéšç§»åŠ¨ï¼Œä»å°¾å·´å¾€å‰è¦†ç›–
     for (int i = len - 1; i > 0; i--)
     {
         snakeX[i] = snakeX[i - 1];
         snakeY[i] = snakeY[i - 1];
     }
 
-    //ÉßÍ·ÒÆ¶¯
+    //è›‡å¤´ç§»åŠ¨
     switch (dir)
     {
     case 1: snakeY[0]--; break;
@@ -212,18 +212,18 @@ void Logic()
     case 4: snakeX[0]--; break;
     }
 
-    //×²Ç½
+    //æ’å¢™
     if (snakeX[0] <= 0 || snakeX[0] >= WIDTH + 1 || snakeY[0] <= 0 || snakeY[0] >= HEIGHT)
         gameOver = 1;
 
-    //×²µ½×Ô¼º
+    //æ’åˆ°è‡ªå·±
     for (int i = 1; i < len; i++)
     {
         if (snakeX[0] == snakeX[i] && snakeY[0] == snakeY[i])
             gameOver = 1;
     }
 
-    //³Ôµ½Ê³Îï
+    //åƒåˆ°é£Ÿç‰©
     if (snakeX[0] == foodX && snakeY[0] == foodY)
     {
         len++;
@@ -232,29 +232,29 @@ void Logic()
             gameOver = 1;
             win = 1;
         }
-        foodX = rand() % (WIDTH - 4) + 3;  // Ëæ»úÉú³ÉĞÂµÄÊ³ÎïÎ»ÖÃ 
+        foodX = rand() % (WIDTH - 4) + 3;  // éšæœºç”Ÿæˆæ–°çš„é£Ÿç‰©ä½ç½® 
         foodY = rand() % (HEIGHT - 4) + 2;
     }
 }
 
 int main()
 {
-    atexit(CleanupScoreFile); //×¢²áÍË³öº¯Êı£¬³ÌĞò½áÊøÊ±É¾³ı³É¼¨ÎÄ¼ş)
-    remove(SCORE_FILE); //É¾³ı¾ÉµÄ³É¼¨ÎÄ¼ş
+    atexit(CleanupScoreFile); //æ³¨å†Œé€€å‡ºå‡½æ•°ï¼Œç¨‹åºç»“æŸæ—¶åˆ é™¤æˆç»©æ–‡ä»¶)
+    remove(SCORE_FILE); //åˆ é™¤æ—§çš„æˆç»©æ–‡ä»¶
 
     srand((unsigned int)time(NULL));
     printf("===========================================================\n");
-    printf("                 »¶Ó­À´µ½Ì°³ÔÉßĞ¡ÓÎÏ·\n");
+    printf("                 æ¬¢è¿æ¥åˆ°è´ªåƒè›‡å°æ¸¸æˆ\n");
     printf("===========================================================\n");
-    printf("  ±¾ÓÎÏ·Ö»¿ÉÒÔÍ¨¹ıÓ¢ÎÄÊäÈë×´Ì¬ÏÂĞ¡Ğ´µÄwsad¿ØÖÆ£¬XÍË³öÓÎÏ·\n");
-    printf("                  Ì°³ÔÉß³¤¶È´ïµ½15»ñÊ¤\n");
-    printf("                Ì°³ÔÉß»áËæ×Å»ñÈ¡Ê³Îï¶ø¼ÓËÙ\n");
+    printf("  æœ¬æ¸¸æˆåªå¯ä»¥é€šè¿‡è‹±æ–‡è¾“å…¥çŠ¶æ€ä¸‹å°å†™çš„wsadæ§åˆ¶ï¼ŒXé€€å‡ºæ¸¸æˆ\n");
+    printf("                  è´ªåƒè›‡é•¿åº¦è¾¾åˆ°15è·èƒœ\n");
+    printf("                è´ªåƒè›‡ä¼šéšç€è·å–é£Ÿç‰©è€ŒåŠ é€Ÿ\n");
     printf("===========================================================\n");
 
     LoadScores();
 
     printf("===========================================================\n");
-    printf("Çë×ĞÏ¸ÔÄ¶ÁÓÎÏ·¹æÔò£¬°´ÏÂY¼üÒÔ¿ªÊ¼ÓÎÏ·£¬°´ÏÂÆäËû¼üÍË³öÓÎÏ·...\n");
+    printf("è¯·ä»”ç»†é˜…è¯»æ¸¸æˆè§„åˆ™ï¼ŒæŒ‰ä¸‹Yé”®ä»¥å¼€å§‹æ¸¸æˆï¼ŒæŒ‰ä¸‹å…¶ä»–é”®é€€å‡ºæ¸¸æˆ...\n");
 
     while (1)
     {
@@ -279,22 +279,22 @@ int main()
             Draw();
             Input();
             Logic();
-            Sleep(100 - len * 3); //¿ØÖÆËÙ¶È
+            Sleep(100 - len * 3); //æ§åˆ¶é€Ÿåº¦
         }
         if (win == 0)
         {
             Gotoxy(0, HEIGHT + 3);
-            printf("ÓÎÏ·½áÊø£¡×îÖÕ³¤¶È£º%d\n", len);
-            SaveScore(len, 0); //±£´æÊ§°Ü³É¼¨
-            printf("°´RÖØĞÂ¿ªÊ¼£¬°´ÆäËû¼üÍË³öÓÎÏ·...\n");
+            printf("æ¸¸æˆç»“æŸï¼æœ€ç»ˆé•¿åº¦ï¼š%d\n", len);
+            SaveScore(len, 0); //ä¿å­˜å¤±è´¥æˆç»©
+            printf("æŒ‰Ré‡æ–°å¼€å§‹ï¼ŒæŒ‰å…¶ä»–é”®é€€å‡ºæ¸¸æˆ...\n");
         }
 
         else
         {
             Gotoxy(0, HEIGHT + 3);
-            printf("¹§Ï²Äã£¬ÄãÓ®ÁË£¡×îÖÕ³¤¶È£º%d\n", len);
-            SaveScore(len, 1); // ±£´æÊ¤Àû³É¼¨
-            printf("°´RÖØĞÂ¿ªÊ¼£¬°´ÆäËû¼üÍË³öÓÎÏ·...\n");
+            printf("æ­å–œä½ ï¼Œä½ èµ¢äº†ï¼æœ€ç»ˆé•¿åº¦ï¼š%d\n", len);
+            SaveScore(len, 1); // ä¿å­˜èƒœåˆ©æˆç»©
+            printf("æŒ‰Ré‡æ–°å¼€å§‹ï¼ŒæŒ‰å…¶ä»–é”®é€€å‡ºæ¸¸æˆ...\n");
         }
 
 
@@ -302,8 +302,8 @@ int main()
         if (an == 'r' || an == 'R')
         {
             system("cls");
-            LoadScores();              // ¡¾ĞŞ¸Ä¡¿ĞÂÔö£ºÖØ¿ªÇ°ÔÙÏÔÊ¾Ò»´ÎÀúÊ·³É¼¨
-            printf("°´Y¼ü¿ªÊ¼ĞÂÒ»¾Ö...\n");
+            LoadScores();              // ã€ä¿®æ”¹ã€‘æ–°å¢ï¼šé‡å¼€å‰å†æ˜¾ç¤ºä¸€æ¬¡å†å²æˆç»©
+            printf("æŒ‰Yé”®å¼€å§‹æ–°ä¸€å±€...\n");
             while (1)
             {
                 int q = _getch();
