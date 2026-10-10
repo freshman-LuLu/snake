@@ -5,6 +5,8 @@
 
 -**基础c语言文件**:snake.c
 -**前端单文件**:index.html
+-**戴维南定理验证**
+-**RC低通滤波电路实验**
 -**程序网页地址**:[http](https://freshman-lulu.github.io/snake/)
 
 - - -
